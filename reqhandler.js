@@ -1,6 +1,6 @@
-import menuSchema from "./models/menuSchema.js"
-import express from 'express';
-import menuItem from "./models/menuItemSchema.js"
+import menuSchema from "./models/menuSchema.js";
+import express from "express";
+import menuItem from "./models/menuItemSchema.js";
 
 export async function createmenu(req, res) {
   try {
@@ -15,17 +15,14 @@ export async function createmenu(req, res) {
       return res.status(400).send({ message: "A menu with this name already exists." });
     }
 
-    const newMenu = await menuSchema.create({ name: menuname, description: description,  });
+    const newMenu = await menuSchema.create({ name: menuname, description: description });
 
-    
     res.status(201).send({ message: "Menu created successfully!", menu: newMenu });
   } catch (error) {
     console.error("Error creating menu:", error);
     res.status(500).send({ message: "An error occurred while creating the menu.", error });
   }
 }
-
-
 
 export async function getAllMenus(req, res) {
   try {
@@ -38,9 +35,6 @@ export async function getAllMenus(req, res) {
   }
 }
 
-
-
-
 export async function createMenuItem(req, res) {
   try {
     const { menuId, name, description, price } = req.body;
@@ -51,10 +45,15 @@ export async function createMenuItem(req, res) {
 
     const menu = await menuSchema.findById(menuId);
     if (!menu) {
-      return res.status(404).json({ message: "Menu not found for the given menuId." });
+      return res.status(500).json({ message: "Menu not found for the given menuId." });
     }
 
-    const newMenuItem = await menuItem.create({ menuId,name,description, price: parseFloat(price),   });
+    const newMenuItem = await menuItem.create({
+      menuId,
+      name,
+      description,
+      price: parseFloat(price),
+    });
 
     res.status(201).send({ message: "Menu item created successfully!", menuItem: newMenuItem });
   } catch (error) {
@@ -64,23 +63,22 @@ export async function createMenuItem(req, res) {
 }
 
 export async function getmenuitem(req, res) {
-    try {
-      const { id } = req.params;
-  
-      const menu = await menuSchema.findById(id);
-      if (!menu) {
-        return res.status(404).send({ message: "Menu not found." });
-      }
-  
-      const menuItems = await menuItem.find({ menuId: id });
-  
-      res.status(200).send({ menuName: menu.name, menuItems });
-    } catch (error) {
-      console.error("Error fetching menu items:", error);
-      res.status(500).send({ message: "An error occurred while fetching the menu items.", error });
-    }
-  }
+  try {
+    const { id } = req.params;
 
+    const menu = await menuSchema.findById(id);
+    if (!menu) {
+      return res.status(500).send({ message: "Menu not found." });
+    }
+
+    const menuItems = await menuItem.find({ menuId: id });
+
+    res.status(200).send({ menuName: menu.name, menuItems });
+  } catch (error) {
+    console.error("Error fetching menu items:", error);
+    res.status(500).send({ message: "An error occurred while fetching the menu items.", error });
+  }
+}
 
 export async function deletemenu(req, res) {
   try {
@@ -88,9 +86,9 @@ export async function deletemenu(req, res) {
 
     const menu = await menuSchema.findById(id);
     if (!menu) {
-      return res.status(404).send({ message: "Menu not found." });
+      return res.status(500).send({ message: "Menu not found." });
     }
-    await menuSchema.findByIdAndDelete(id); 
+    await menuSchema.findByIdAndDelete(id);
     await menuItem.deleteMany({ menuId: id });
 
     res.status(200).send({ message: "Menu and associated menu items deleted successfully!" });
@@ -100,15 +98,13 @@ export async function deletemenu(req, res) {
   }
 }
 
-
-
 export async function deletemenuitem(req, res) {
   try {
     const { id } = req.params;
 
     const menuItemdlt = await menuItem.findById(id);
     if (!menuItemdlt) {
-      return res.status(404).send({ message: "Menu item not found." });
+      return res.status(500).send({ message: "Menu item not found." });
     }
     await menuItem.findByIdAndDelete(id);
 
@@ -120,30 +116,30 @@ export async function deletemenuitem(req, res) {
 }
 
 export async function edititems(req, res) {
-    try {
-      const { id } = req.params;
-      const { name, description, price } = req.body; 
-  
-      if (!name && !description && !price) {
-        return res.status(400).send({
-          message: "At least one field (name, description, price) must be provided for update.",
-        });
-      }
-  
-      const menuItemToUpdate = await menuItem.findById(id);
-      if (!menuItemToUpdate) {
-        return res.status(404).send({ message: "Menu item not found." });
-      }
-  
-      if (name) menuItemToUpdate.name = name;
-      if (description) menuItemToUpdate.description = description;
-      if (price) menuItemToUpdate.price = parseFloat(price);
-  
-      const updatedMenuItem = await menuItemToUpdate.save();
-  
-      res.status(200).send({ message: "Menu item updated successfully!",menuItem: updatedMenuItem, });
-    } catch (error) {
-      console.error("Error updating menu item:", error);
-      res.status(500).send({ message: "An error occurred while updating the menu item.", error, });
+  try {
+    const { id } = req.params;
+    const { name, description, price } = req.body;
+
+    if (!name && !description && !price) {
+      return res.status(400).send({
+        message: "At least one field (name, description, price) must be provided for update.",
+      });
     }
+
+    const menuItemToUpdate = await menuItem.findById(id);
+    if (!menuItemToUpdate) {
+      return res.status(500).send({ message: "Menu item not found." });
+    }
+
+    if (name) menuItemToUpdate.name = name;
+    if (description) menuItemToUpdate.description = description;
+    if (price) menuItemToUpdate.price = parseFloat(price);
+
+    const updatedMenuItem = await menuItemToUpdate.save();
+
+    res.status(200).send({ message: "Menu item updated successfully!", menuItem: updatedMenuItem });
+  } catch (error) {
+    console.error("Error updating menu item:", error);
+    res.status(500).send({ message: "An error occurred while updating the menu item.", error });
   }
+}
